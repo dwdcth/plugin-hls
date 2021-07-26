@@ -89,6 +89,13 @@ func init() {
 	})
 	http.HandleFunc("/hls/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if strings.Contains(r.URL.Path, "m3u8") {
+		      sign := r.URL.Query().Get("sign")
+		      if err := AuthHooks.Trigger(sign); err != nil {
+			w.WriteHeader(403)
+			return
+		      }
+		}
 		if strings.HasSuffix(r.URL.Path, ".m3u8") {
 			if f, err := os.Open(filepath.Join(config.Path, strings.TrimPrefix(r.URL.Path, "/hls/"))); err == nil {
 				io.Copy(w, f)
